@@ -53,15 +53,15 @@ public class CommandLine implements CommandLineRunner {
 
    private void createContact() {
       System.out.printf("Account origin (%s)): %n", Arrays.asList(
-            Constants.FreshdeskContactExternalAccountOrigin.values()));
+            Constants.AccountOrigin.values()));
       final String accountOriginString = _scanner.nextLine();
       if (accountOriginString.isEmpty()) {
          System.out.println("Empty account origin!");
          return;
       }
-      final Constants.FreshdeskContactExternalAccountOrigin accountOrigin;
+      final Constants.AccountOrigin accountOrigin;
       try {
-         accountOrigin = Constants.FreshdeskContactExternalAccountOrigin.valueOf(
+         accountOrigin = Constants.AccountOrigin.valueOf(
                accountOriginString.toUpperCase());
       } catch (final IllegalArgumentException e) {
          System.out.println("Unsupported account origin!");

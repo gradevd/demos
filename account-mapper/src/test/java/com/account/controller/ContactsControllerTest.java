@@ -1,85 +1,109 @@
 package com.account.controller;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.RequestBuilder;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.account.constants.Constants;
+import com.account.entity.CreateContactTaskEntity;
+import com.account.error.DuplicateTaskException;
+import com.account.error.ErrorResponse;
+import com.account.service.CreateContactTaskService;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest
-@AutoConfigureMockMvc
 public class ContactsControllerTest {
 
-   @Autowired
-   private MockMvc _mockMvc;
+   @InjectMocks
+   private ContactsController _contactsController;
 
-   @Test
-   public void contacts_correctArguments_returns201() throws Exception {
-      final RequestBuilder mockRequest = MockMvcRequestBuilders.post(
-                  "/contacts").accept(MediaType.APPLICATION_JSON)
-            .content("{\"account\":\"account\",\"origin\":\"github\"}")
-            .contentType(MediaType.APPLICATION_JSON);
-      final MvcResult result = _mockMvc.perform(mockRequest)
-            .andExpect(status().isCreated()).andReturn();
-      final Map<String, String> response = new ObjectMapper().readValue(
-            result.getResponse().getContentAsString(),
-            new TypeReference<HashMap<String, String>>() {
-            });
-      assertThat(response.containsKey("key")).isTrue();
+   @Mock
+   private CreateContactTaskService _taskService;
+
+   public ContactsControllerTest() {
+      MockitoAnnotations.openMocks(this);
    }
 
    @Test
-   public void contacts_missingAccount_returns400() throws Exception {
-      final RequestBuilder mockRequest = MockMvcRequestBuilders.post(
-                  "/contacts").accept(MediaType.APPLICATION_JSON)
-            .content("{\"origin\":\"github\"}")
-            .contentType(MediaType.APPLICATION_JSON);
-      final MvcResult result = _mockMvc.perform(mockRequest)
-            .andExpect(status().isBadRequest()).andReturn();
-      final ErrorResponse response = new ObjectMapper().readValue(
-            result.getResponse().getContentAsString(), ErrorResponse.class);
-      assertThat(response.message).isNotBlank();
-      assertThat(response.details).isNotBlank();
+   public void create_withCorrectArguments_returnsTheCreatedTask() {
+      final String account = "test-account";
+      final String origin = "github";
+      final CreateContactTaskEntity expectedTaskEntity = new CreateContactTaskEntity(
+            account, Constants.AccountOrigin.valueOf(origin.toUpperCase()));
+      expectedTaskEntity.id = "1";
+
+      when(_taskService.create(account, origin)).thenReturn(expectedTaskEntity);
+
+      final ResponseEntity<?> response = _contactsController.create(
+            new ContactsController.CreateContactRequestBody(account, origin));
+
+      assertEquals(response.getStatusCode(), HttpStatus.CREATED);
+      final CreateContactTaskEntity entity = (CreateContactTaskEntity) response.getBody();
+      assertNotNull(entity);
+      assertEquals(entity.id, expectedTaskEntity.id);
+      assertEquals(entity.account, expectedTaskEntity.account);
+      assertEquals(entity.accountOrigin, expectedTaskEntity.accountOrigin);
    }
 
    @Test
-   public void contacts_missingOrigin_returns400() throws Exception {
-      final RequestBuilder mockRequest = MockMvcRequestBuilders.post(
-                  "/contacts").accept(MediaType.APPLICATION_JSON)
-            .content("{\"account\":\"account\"}")
-            .contentType(MediaType.APPLICATION_JSON);
-      final MvcResult result = _mockMvc.perform(mockRequest)
-            .andExpect(status().isBadRequest()).andReturn();
-      final ErrorResponse response = new ObjectMapper().readValue(
-            result.getResponse().getContentAsString(), ErrorResponse.class);
-      assertThat(response.message).isNotBlank();
-      assertThat(response.details).isNotBlank();
+   public void create_withCorrectArguments_whenDuplicateTaskExists_returnsConflictResponse() {
+      final String account = "test-account";
+      final String origin = "github";
+
+      final DuplicateTaskException exceptionThrown = new DuplicateTaskException(
+            "test-message");
+      when(_taskService.create(account, origin)).thenThrow(exceptionThrown);
+
+      final ResponseEntity<?> response = _contactsController.create(
+            new ContactsController.CreateContactRequestBody(account, origin));
+
+      assertEquals(response.getStatusCode(), HttpStatus.CONFLICT);
+      final ErrorResponse body = (ErrorResponse) response.getBody();
+      assertNotNull(body);
+      assertEquals(body.message(), "Duplicate task.");
+      assertEquals(body.details(), exceptionThrown.getMessage());
    }
 
    @Test
-   public void contacts_wrongOrigin_returns400() throws Exception {
-      final RequestBuilder mockRequest = MockMvcRequestBuilders.post(
-                  "/contacts").accept(MediaType.APPLICATION_JSON)
-            .content("{\"account\":\"account\",\"origin\":\"gitlab\"}")
-            .contentType(MediaType.APPLICATION_JSON);
-      final MvcResult result = _mockMvc.perform(mockRequest)
-            .andExpect(status().isBadRequest()).andReturn();
-      final ErrorResponse response = new ObjectMapper().readValue(
-            result.getResponse().getContentAsString(), ErrorResponse.class);
-      assertThat(response.message).isNotBlank();
-      assertThat(response.details).isNotBlank();
+   public void create_badRequestParameters_returns400Response() {
+      final String account = "bad-account-request";
+      final String origin = "bad-origin-request";
+
+      final IllegalArgumentException exceptionThrown = new IllegalArgumentException(
+            "test-message");
+      when(_taskService.create(account, origin)).thenThrow(exceptionThrown);
+
+      final ResponseEntity<?> response = _contactsController.create(
+            new ContactsController.CreateContactRequestBody(account, origin));
+
+      assertEquals(response.getStatusCode(), HttpStatus.BAD_REQUEST);
+      final ErrorResponse body = (ErrorResponse) response.getBody();
+      assertNotNull(body);
+      assertEquals(body.message(), "Bad request parameters.");
+      assertEquals(body.details(), exceptionThrown.getMessage());
+   }
+
+   @Test
+   public void create_unknownException_returnsGeneralErrorMessage() {
+      final String account = "bad-account-request";
+      final String origin = "bad-origin-request";
+
+      final RuntimeException exception = new RuntimeException();
+      when(_taskService.create(account, origin)).thenThrow(exception);
+
+      final ResponseEntity<?> response = _contactsController.create(
+            new ContactsController.CreateContactRequestBody(account, origin));
+
+      assertEquals(response.getStatusCode(), HttpStatus.BAD_REQUEST);
+      final ErrorResponse body = (ErrorResponse) response.getBody();
+      assertNotNull(body);
+      assertEquals(body.message(), "Bad request parameters.");
+      assertEquals(body.details(),
+            "Something went wrong. Please contact the support team for further assistance.");
    }
 }
