@@ -1,5 +1,7 @@
 package com.account.controller;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * A simple POJO representing an error response returned by the REST controllers.
  * </p>
@@ -10,7 +12,8 @@ public class ErrorResponse {
    public final String message;
    public final String details;
 
-   public ErrorResponse(final String message, final String details) {
+   public ErrorResponse(@JsonProperty("message") final String message,
+         @JsonProperty("details") final String details) {
       this.message = message;
       this.details = details;
    }
