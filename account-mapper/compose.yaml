@@ -5,6 +5,9 @@ services:
       - "8443:8443"
     depends_on:
       - mongodb
+    environment:
+      - GITHUB_API_KEY=${GITHUB_API_KEY}
+      - FRESHDESK_API_KEY=${FRESHDESK_API_KEY}
   mongodb:
     image: "mongo:latest"
     ports: 

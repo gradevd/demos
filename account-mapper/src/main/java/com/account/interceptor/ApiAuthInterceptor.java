@@ -2,6 +2,7 @@ package com.account.interceptor;
 
 import java.io.IOException;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
@@ -17,6 +18,16 @@ import com.account.constants.Constants;
 // TODO: Extract the API keys as env variables
 @Component
 public class ApiAuthInterceptor implements ClientHttpRequestInterceptor {
+   private final String _githubApiKey;
+   private final String _freshdeskApiKey;
+
+   public ApiAuthInterceptor(
+         @Value("${github.api.key}") final String githubApiKey,
+         @Value("${freshdesk.api.key}") final String freshdeskApiKey) {
+      _githubApiKey = githubApiKey;
+      _freshdeskApiKey = freshdeskApiKey;
+   }
+
    @Override
    public ClientHttpResponse intercept(HttpRequest request, byte[] body,
          ClientHttpRequestExecution execution) throws IOException {
@@ -24,11 +35,10 @@ public class ApiAuthInterceptor implements ClientHttpRequestInterceptor {
       if (Constants.GITHUB_API_HOST.equals(host)) {
          final HttpHeaders headers = request.getHeaders();
          headers.add("Accept", Constants.GITHUB_API_V3_HEADER);
-         headers.add("Authorization",
-               "token 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");
+         headers.add("Authorization", "token " + _githubApiKey);
       } else if (Constants.FRESHDESK_API_HOST.equals(host)) {
          final HttpHeaders headers = request.getHeaders();
-         headers.setBasicAuth("1mIXRTQnuiqYzpdQZE6Y", "X");
+         headers.setBasicAuth(_freshdeskApiKey, "X");
       }
       return execution.execute(request, body);
    }
