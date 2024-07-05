@@ -48,14 +48,14 @@ public class CreateContactTaskEntity {
    public CreateContactTaskEntity() {
    }
 
-   public boolean hasCompleted() {
-      return Constants.CreateContactTaskStatus.FAILED.equals(status)
-            || Constants.CreateContactTaskStatus.COMPLETED.equals(status);
+   public boolean hasNotCompleted() {
+      return !Constants.CreateContactTaskStatus.FAILED.equals(status)
+            && !Constants.CreateContactTaskStatus.COMPLETED.equals(status);
    }
 
    @Override
    public String toString() {
-      return String.format("TaskID: %s; Account: %s @ %s; Status: %s", id,
-            account, accountOrigin, status);
+      return String.format("TaskID: %s; Account: %s @ %s; Status: %s; Last Modified: %s", id,
+            account, accountOrigin, status, updated);
    }
 }

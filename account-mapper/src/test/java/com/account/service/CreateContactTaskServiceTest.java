@@ -1,6 +1,7 @@
 package com.account.service;
 
-import java.util.Optional;
+import java.util.Collections;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -72,17 +73,17 @@ public class CreateContactTaskServiceTest {
       final String origin = "github";
       // Mock a pending task is returned
       final CreateContactTaskEntity task = mock(CreateContactTaskEntity.class);
-      when(task.hasCompleted()).thenReturn(false);
+      when(task.hasNotCompleted()).thenReturn(true);
 
       when(_repository.findByAccountAndAccountOrigin(account,
             Constants.AccountOrigin.valueOf(origin.toUpperCase()))).thenReturn(
-            Optional.of(task));
+            List.of(task));
 
-      final DuplicateTaskException expectedException = assertThrows(
+      final DuplicateTaskException exceptionThrown = assertThrows(
             DuplicateTaskException.class,
             () -> _service.create(account, origin));
-      assertEquals(expectedException.getMessage(),
-            String.format("A duplicate pending task %s already exists.", task));
+      assertEquals(exceptionThrown.getMessage(),
+            "A duplicate pending task already exists.");
    }
 
    @Test()
@@ -92,11 +93,11 @@ public class CreateContactTaskServiceTest {
       // Mock a pending task is returned
       final CreateContactTaskEntity existingTask = mock(
             CreateContactTaskEntity.class);
-      when(existingTask.hasCompleted()).thenReturn(true);
+      when(existingTask.hasNotCompleted()).thenReturn(false);
 
       when(_repository.findByAccountAndAccountOrigin(account,
             Constants.AccountOrigin.valueOf(origin.toUpperCase()))).thenReturn(
-            Optional.of(existingTask));
+            List.of(existingTask));
 
       final CreateContactTaskEntity expected = new CreateContactTaskEntity(
             account, Constants.AccountOrigin.valueOf(origin.toUpperCase()));
@@ -115,7 +116,7 @@ public class CreateContactTaskServiceTest {
 
       when(_repository.findByAccountAndAccountOrigin(account,
             Constants.AccountOrigin.valueOf(origin.toUpperCase()))).thenReturn(
-            Optional.empty());
+            Collections.emptyList());
 
       final CreateContactTaskEntity expected = new CreateContactTaskEntity(
             account, Constants.AccountOrigin.valueOf(origin.toUpperCase()));
