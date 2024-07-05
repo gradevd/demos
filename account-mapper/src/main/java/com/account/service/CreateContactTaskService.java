@@ -49,8 +49,9 @@ public class CreateContactTaskService {
    /**
     * Creates a new task entity in the DB layer.
     *
-    * @param account - The account name to create a task for.
-    * @param origin  - The account origin.
+    * @param account         - The account name to create a task for.
+    * @param origin          - The account origin.
+    * @param freshdeskDomain - The Freshdesk subdomain for account creation.
     * @return The newly created task in case of no conflict with a duplicate
     * pending task.
     * @throws IllegalArgumentException when null, or empty account, or account
@@ -60,17 +61,23 @@ public class CreateContactTaskService {
     *                                  created.
     */
    public CreateContactTaskEntity create(final String account,
-         final String origin) {
+         final String origin, final String freshdeskDomain) {
       // Empty account
       if (account == null || account.isBlank()) {
-         final String message = "Account name must not be null or empty.";
+         final String message = "The account must not be null or empty.";
          _logger.error(message);
          throw new IllegalArgumentException(
                "Account name must not be null or empty.");
       }
       // Empty origin
       if (origin == null || origin.isBlank()) {
-         final String message = "Account origin must not be null or empty.";
+         final String message = "The account origin must not be null or empty.";
+         _logger.error(message);
+         throw new IllegalArgumentException(message);
+      }
+      // Empty Freshdesk subdomain
+      if (freshdeskDomain == null || freshdeskDomain.isBlank()) {
+         final String message = "The Freshdesk subdomain must not be null or empty.";
          _logger.error(message);
          throw new IllegalArgumentException(message);
       }
@@ -85,9 +92,9 @@ public class CreateContactTaskService {
          _logger.error(message);
          throw new IllegalArgumentException(message);
       }
-      // Duplicate task
-      final List<CreateContactTaskEntity> matchingTasks = _createContactTaskRepository.findByAccountAndAccountOrigin(
-            account, accountOrigin);
+      // Duplicate task check
+      final List<CreateContactTaskEntity> matchingTasks = _createContactTaskRepository.findByAccountAndAccountOriginAndFreshdeskDomain(
+            account, accountOrigin, freshdeskDomain);
       _logger.debug("All matching tasks for {} @ {}: {}", account,
             accountOrigin, matchingTasks);
       if (matchingTasks.stream()
@@ -98,7 +105,8 @@ public class CreateContactTaskService {
       }
       // Create a new task
       final CreateContactTaskEntity task = _createContactTaskRepository.save(
-            new CreateContactTaskEntity(account, accountOrigin));
+            new CreateContactTaskEntity(account, accountOrigin,
+                  freshdeskDomain));
       _logger.debug("Successfully created task {}.", task);
       return task;
    }
@@ -131,7 +139,8 @@ public class CreateContactTaskService {
                task.account);
          // Cache the github data
          task = updateFreshdeskContactTaskEntity(task, gitHubAccountInfo);
-         createOrUpdateFreshdeskContact(gitHubAccountInfo);
+         createOrUpdateFreshdeskContact(task.freshdeskDomain,
+               gitHubAccountInfo);
          task.status = Constants.CreateContactTaskStatus.COMPLETED;
       } catch (final RecoverableTaskException e) {
          _logger.debug(
@@ -173,6 +182,7 @@ public class CreateContactTaskService {
          return null;
       }
       task.status = Constants.CreateContactTaskStatus.RUNNING;
+      task.attempts++;
       final CreateContactTaskEntity assignedTask = _createContactTaskRepository.save(
             task);
       _logger.info("Assigned task ID {} for execution.", task.id);
@@ -224,24 +234,25 @@ public class CreateContactTaskService {
     * Creates or updates an existing FreshdeskContact out of the retrieved
     * {@link GithubAccountInfo}.
     *
+    * @param freshdeskDomain   The target Freshdesk domain.
     * @param gitHubAccountInfo The {@link GithubAccountInfo} to create the
     *                          contact from.
     * @throws RecoverableTaskException in case the API call fails in a
     *                                  recoverable way (e.g. service unavailable,
     *                                  or the API call times out).
     */
-   private void createOrUpdateFreshdeskContact(
+   private void createOrUpdateFreshdeskContact(final String freshdeskDomain,
          final GithubAccountInfo gitHubAccountInfo) {
       final FreshdeskContactSpec contactSpec = FreshdeskContactSpec.from(
             gitHubAccountInfo);
       final Optional<FreshdeskContactInfo> freshdeskContactInfo = _freshdeskContactService.findByExternalId(
-            contactSpec.uniqueExternalId);
+            freshdeskDomain, contactSpec.uniqueExternalId);
       try {
          if (freshdeskContactInfo.isPresent()) {
-            _freshdeskContactService.update(freshdeskContactInfo.get().id,
-                  contactSpec);
+            _freshdeskContactService.update(freshdeskDomain,
+                  freshdeskContactInfo.get().id, contactSpec);
          } else {
-            _freshdeskContactService.create(contactSpec);
+            _freshdeskContactService.create(freshdeskDomain, contactSpec);
          }
       } catch (final HttpStatusCodeException e) {
          handleRecoverableException(e);

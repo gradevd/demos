@@ -31,6 +31,8 @@ public class CreateContactTaskEntity {
 
    // Account specific info
    @NonNull
+   public String freshdeskDomain;
+   @NonNull
    public Constants.AccountOrigin accountOrigin;
    @NonNull
    public String account;
@@ -39,9 +41,10 @@ public class CreateContactTaskEntity {
    public String address;
 
    public CreateContactTaskEntity(final String account,
-         final Constants.AccountOrigin origin) {
+         final Constants.AccountOrigin origin, final String freshdeskDomain) {
       this.account = account;
       this.accountOrigin = origin;
+      this.freshdeskDomain = freshdeskDomain;
       this.status = Constants.CreateContactTaskStatus.NOT_STARTED;
    }
 
@@ -55,7 +58,8 @@ public class CreateContactTaskEntity {
 
    @Override
    public String toString() {
-      return String.format("TaskID: %s; Account: %s @ %s; Status: %s; Last Modified: %s", id,
-            account, accountOrigin, status, updated);
+      return String.format(
+            "TaskID: %s; Account: %s @ %s; Freshdesk domain: %s; Status: %s; Last Modified: %s",
+            id, account, accountOrigin, freshdeskDomain, status, updated);
    }
 }

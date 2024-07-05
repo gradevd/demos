@@ -39,20 +39,16 @@ public class FreshdeskContactService {
     * @return An optional object containing the {@link FreshdeskContactInfo} if found.
     */
    public Optional<FreshdeskContactInfo> findByExternalId(
-         final String externalId) {
+         final String freshdeskDomain, final String externalId) {
       _logger.info("Looking up a Freshdesk contact by external ID {}.",
             externalId);
       final HttpEntity<Void> requestEntity = new HttpEntity<>(
             new HttpHeaders());
 
-      final String url = UriComponentsBuilder.fromHttpUrl(
-                  Constants.FRESHDESK_API_URL + Constants.FRESHDESK_CONTACTS_PATH)
-            .toUriString();
-
       // Unfortunately there is no Freshdesk Query API by external ID, so we
       // need to retrieve all contacts and filter them ourselves.
       final ResponseEntity<List<FreshdeskContactInfo>> response = _restTemplate.exchange(
-            url, HttpMethod.GET, requestEntity,
+            getFreshdeskApiUrl(freshdeskDomain), HttpMethod.GET, requestEntity,
             new ParameterizedTypeReference<>() {
             });
 
@@ -75,19 +71,16 @@ public class FreshdeskContactService {
     * @param updateSpec The data to update.
     * @return The updated {@link FreshdeskContactInfo}
     */
-   public FreshdeskContactInfo update(final Long contactId,
-         final FreshdeskContactSpec updateSpec) {
+   public FreshdeskContactInfo update(final String freshdeskDomain,
+         final Long contactId, final FreshdeskContactSpec updateSpec) {
       _logger.info("Updating a Freshdesk Contact with ID {}.", contactId);
 
       final HttpEntity<FreshdeskContactSpec> requestEntity = new HttpEntity<>(
             updateSpec, new HttpHeaders());
 
-      final String url = UriComponentsBuilder.fromHttpUrl(
-            Constants.FRESHDESK_API_URL + Constants.FRESHDESK_CONTACTS_PATH
-                  + contactId).toUriString();
-
       final ResponseEntity<FreshdeskContactInfo> response = _restTemplate.exchange(
-            url, HttpMethod.PUT, requestEntity, FreshdeskContactInfo.class);
+            getFreshdeskApiUrl(freshdeskDomain, contactId.toString()),
+            HttpMethod.PUT, requestEntity, FreshdeskContactInfo.class);
 
       _logger.info("Updated contact info {}.", response.getBody());
       return response.getBody();
@@ -99,20 +92,30 @@ public class FreshdeskContactService {
     * @param createSpec The data used to create the contact.
     * @return The newly created {@link FreshdeskContactInfo}.
     */
-   public FreshdeskContactInfo create(final FreshdeskContactSpec createSpec) {
+   public FreshdeskContactInfo create(final String freshdeskDomain,
+         final FreshdeskContactSpec createSpec) {
       _logger.info("Creating a Freshdesk Contact '{}'.", createSpec);
       final HttpEntity<FreshdeskContactSpec> requestEntity = new HttpEntity<>(
             createSpec, new HttpHeaders());
 
-      final String url = UriComponentsBuilder.fromHttpUrl(
-                  Constants.FRESHDESK_API_URL + Constants.FRESHDESK_CONTACTS_PATH)
-            .toUriString();
-
       final ResponseEntity<FreshdeskContactInfo> response = _restTemplate.exchange(
-            url, HttpMethod.POST, requestEntity, FreshdeskContactInfo.class);
+            getFreshdeskApiUrl(freshdeskDomain), HttpMethod.POST, requestEntity,
+            FreshdeskContactInfo.class);
 
       _logger.info("Successfully created a Freshdesk contact {}.",
             response.getBody());
       return response.getBody();
+   }
+
+   private String getFreshdeskApiUrl(final String freshdeskDomain) {
+      return getFreshdeskApiUrl(freshdeskDomain, "");
+   }
+
+   private String getFreshdeskApiUrl(final String freshdeskDomain,
+         final String contactId) {
+      return UriComponentsBuilder.fromHttpUrl(
+                  String.format(Constants.FRESHDESK_API_URL_TEMPLATE, freshdeskDomain)
+                        + Constants.FRESHDESK_CONTACTS_PATH + contactId)
+            .toUriString();
    }
 }

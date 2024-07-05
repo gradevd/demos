@@ -35,7 +35,7 @@ public class CreateContactTaskServiceTest {
    public void create_nullAccount_throwsException() {
       final IllegalArgumentException expectedException = assertThrows(
             IllegalArgumentException.class,
-            () -> _service.create(null, "origin"));
+            () -> _service.create(null, "origin", "domain"));
       assertEquals(expectedException.getMessage(),
             "Account name must not be null or empty.");
    }
@@ -44,7 +44,7 @@ public class CreateContactTaskServiceTest {
    public void create_emptyAccount_throwsException() {
       final IllegalArgumentException expectedException = assertThrows(
             IllegalArgumentException.class,
-            () -> _service.create("", "origin"));
+            () -> _service.create("", "origin", "domain"));
       assertEquals(expectedException.getMessage(),
             "Account name must not be null or empty.");
    }
@@ -53,35 +53,36 @@ public class CreateContactTaskServiceTest {
    public void create_nullAccountOrigin_throwsException() {
       final IllegalArgumentException expectedException = assertThrows(
             IllegalArgumentException.class,
-            () -> _service.create("account", null));
+            () -> _service.create("account", null, "domain"));
       assertEquals(expectedException.getMessage(),
-            "Account origin must not be null or empty.");
+            "The account origin must not be null or empty.");
    }
 
    @Test()
    public void create_emptyAccountOrigin_throwsException() {
       final IllegalArgumentException expectedException = assertThrows(
             IllegalArgumentException.class,
-            () -> _service.create("account", null));
+            () -> _service.create("account", null, "domain"));
       assertEquals(expectedException.getMessage(),
-            "Account origin must not be null or empty.");
+            "The account origin must not be null or empty.");
    }
 
    @Test()
    public void create_duplicateTask_throwsException_whenTaskIsNotCompleted() {
       final String account = "duplicate-account";
       final String origin = "github";
+      final String domain = "domain";
       // Mock a pending task is returned
       final CreateContactTaskEntity task = mock(CreateContactTaskEntity.class);
       when(task.hasNotCompleted()).thenReturn(true);
 
-      when(_repository.findByAccountAndAccountOrigin(account,
-            Constants.AccountOrigin.valueOf(origin.toUpperCase()))).thenReturn(
-            List.of(task));
+      when(_repository.findByAccountAndAccountOriginAndFreshdeskDomain(account,
+            Constants.AccountOrigin.valueOf(origin.toUpperCase()),
+            domain)).thenReturn(List.of(task));
 
       final DuplicateTaskException exceptionThrown = assertThrows(
             DuplicateTaskException.class,
-            () -> _service.create(account, origin));
+            () -> _service.create(account, origin, domain));
       assertEquals(exceptionThrown.getMessage(),
             "A duplicate pending task already exists.");
    }
@@ -90,21 +91,24 @@ public class CreateContactTaskServiceTest {
    public void create_duplicateTask_createsANewTask_whenTaskIsCompleted() {
       final String account = "duplicate-account";
       final String origin = "github";
+      final String domain = "domain";
       // Mock a pending task is returned
       final CreateContactTaskEntity existingTask = mock(
             CreateContactTaskEntity.class);
       when(existingTask.hasNotCompleted()).thenReturn(false);
 
-      when(_repository.findByAccountAndAccountOrigin(account,
-            Constants.AccountOrigin.valueOf(origin.toUpperCase()))).thenReturn(
-            List.of(existingTask));
+      when(_repository.findByAccountAndAccountOriginAndFreshdeskDomain(account,
+            Constants.AccountOrigin.valueOf(origin.toUpperCase()),
+            domain)).thenReturn(List.of(existingTask));
 
       final CreateContactTaskEntity expected = new CreateContactTaskEntity(
-            account, Constants.AccountOrigin.valueOf(origin.toUpperCase()));
+            account, Constants.AccountOrigin.valueOf(origin.toUpperCase()),
+            domain);
       when(_repository.save(any(CreateContactTaskEntity.class))).thenReturn(
             expected);
 
-      final CreateContactTaskEntity task = _service.create(account, origin);
+      final CreateContactTaskEntity task = _service.create(account, origin,
+            domain);
       assertSame(expected, task);
    }
 
@@ -112,18 +116,19 @@ public class CreateContactTaskServiceTest {
    public void create_returnANewTask() {
       final String account = "duplicate-account";
       final String origin = "github";
-      // Mock a pending task is returned
-
-      when(_repository.findByAccountAndAccountOrigin(account,
-            Constants.AccountOrigin.valueOf(origin.toUpperCase()))).thenReturn(
-            Collections.emptyList());
+      final String domain = "domain";
+      when(_repository.findByAccountAndAccountOriginAndFreshdeskDomain(account,
+            Constants.AccountOrigin.valueOf(origin.toUpperCase()),
+            domain)).thenReturn(Collections.emptyList());
 
       final CreateContactTaskEntity expected = new CreateContactTaskEntity(
-            account, Constants.AccountOrigin.valueOf(origin.toUpperCase()));
+            account, Constants.AccountOrigin.valueOf(origin.toUpperCase()),
+            domain);
       when(_repository.save(any(CreateContactTaskEntity.class))).thenReturn(
             expected);
 
-      final CreateContactTaskEntity task = _service.create(account, origin);
+      final CreateContactTaskEntity task = _service.create(account, origin,
+            domain);
       assertSame(expected, task);
    }
 }

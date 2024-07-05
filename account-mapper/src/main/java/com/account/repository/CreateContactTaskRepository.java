@@ -1,7 +1,6 @@
 package com.account.repository;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
@@ -18,8 +17,9 @@ import com.account.entity.CreateContactTaskEntity;
 @Repository
 public interface CreateContactTaskRepository
       extends MongoRepository<CreateContactTaskEntity, String> {
-   List<CreateContactTaskEntity> findByAccountAndAccountOrigin(
-         final String account, final Constants.AccountOrigin accountOrigin);
+   List<CreateContactTaskEntity> findByAccountAndAccountOriginAndFreshdeskDomain(
+         final String account, final Constants.AccountOrigin accountOrigin,
+         final String freshdeskDomain);
 
    List<CreateContactTaskEntity> findByStatusInOrAttemptsGreaterThanEqual(
          List<Constants.CreateContactTaskStatus> statuses, int attemptsLimit);

@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-public class ApplicationIntegrationTest {
+public class AccountMapperIntegrationTest {
 
    @Container
    private static final MongoDBContainer mongoDBContainer = new MongoDBContainer(
@@ -58,8 +58,8 @@ public class ApplicationIntegrationTest {
    @Test
    public void createContacts_returnsCreatedTask() throws Exception {
       final RequestBuilder mockRequest = MockMvcRequestBuilders.post(
-                  "/contacts").accept(MediaType.APPLICATION_JSON)
-            .content("{\"account\":\"account\",\"origin\":\"github\"}")
+                  "/tasks").accept(MediaType.APPLICATION_JSON)
+            .content("{\"account\":\"account\",\"origin\":\"github\", \"freshdeskDomain\":\"domain\"}")
             .contentType(MediaType.APPLICATION_JSON);
       final MvcResult result = _mockMvc.perform(mockRequest)
             .andExpect(status().isCreated()).andReturn();

@@ -23,10 +23,10 @@ import com.account.interceptor.ApiAuthInterceptor;
 @EnableMongoAuditing
 @EnableScheduling
 @SpringBootApplication
-public class Application implements WebMvcConfigurer {
+public class AccountMapper implements WebMvcConfigurer {
    /**
     * The entry point of the Spring Boot Application.
-    * The Application can be run in two modes:
+    * The AccountMapper can be run in two modes:
     * </p>
     * * Web Interface - The default behaviour of the application. A web server
     * is initialized on the specified ${server.port}.
@@ -39,7 +39,7 @@ public class Application implements WebMvcConfigurer {
     * @param args - The program arguments.
     */
    public static void main(String[] args) {
-      final SpringApplication app = new SpringApplication(Application.class);
+      final SpringApplication app = new SpringApplication(AccountMapper.class);
       //@formatter:off
       final boolean cmdLineMode = Boolean.parseBoolean(Arrays.stream(args)
             .filter(arg -> arg.startsWith("--command.line.interface.enabled="))

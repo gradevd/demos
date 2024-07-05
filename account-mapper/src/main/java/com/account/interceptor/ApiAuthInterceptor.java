@@ -36,7 +36,7 @@ public class ApiAuthInterceptor implements ClientHttpRequestInterceptor {
          final HttpHeaders headers = request.getHeaders();
          headers.add("Accept", Constants.GITHUB_API_V3_HEADER);
          headers.add("Authorization", "token " + _githubApiKey);
-      } else if (Constants.FRESHDESK_API_HOST.equals(host)) {
+      } else if (host.endsWith(Constants.FRESHDESK_DOMAIN)) {
          final HttpHeaders headers = request.getHeaders();
          headers.setBasicAuth(_freshdeskApiKey, "X");
       }

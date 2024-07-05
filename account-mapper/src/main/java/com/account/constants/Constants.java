@@ -9,8 +9,9 @@ public class Constants {
    public static final String GITHUB_API_V3_HEADER = "application/vnd.github.v3+json";
 
    // Freshdesk //
-   public static final String FRESHDESK_API_HOST = "mytestcorp-help.freshdesk.com";
-   public static final String FRESHDESK_API_URL = String.format(
+   public static final String FRESHDESK_DOMAIN = ".freshdesk.com";
+   private static final String FRESHDESK_API_HOST = "%s" + FRESHDESK_DOMAIN;
+   public static final String FRESHDESK_API_URL_TEMPLATE = String.format(
          "https://%s/api/v2/", FRESHDESK_API_HOST);
    public static final String FRESHDESK_CONTACTS_PATH = "contacts/";
 

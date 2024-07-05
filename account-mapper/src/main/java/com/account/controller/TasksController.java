@@ -16,14 +16,14 @@ import com.account.error.ErrorResponse;
 import com.account.service.CreateContactTaskService;
 
 @RestController
-@RequestMapping("contacts")
-public class ContactsController {
+@RequestMapping("tasks")
+public class TasksController {
 
    private final Logger _logger = LoggerFactory.getLogger(getClass());
    private final CreateContactTaskService _createContactTaskService;
 
    @Autowired
-   public ContactsController(
+   public TasksController(
          final CreateContactTaskService createContactTaskService) {
       _createContactTaskService = createContactTaskService;
    }
@@ -32,12 +32,13 @@ public class ContactsController {
    public ResponseEntity<?> create(
          @RequestBody final CreateContactRequestBody requestBody) {
       _logger.debug(
-            "Received a request to create a Freshdesk contact for account {}@{}.",
-            requestBody.account, requestBody.origin);
-      final CreateContactTaskEntity task;
+            "Received a request to create a {}.freshdesk.com contact for account {}@{}.",
+            requestBody.freshdeskDomain, requestBody.account,
+            requestBody.origin);
       try {
-         task = _createContactTaskService.create(requestBody.account,
-               requestBody.origin);
+         final CreateContactTaskEntity task = _createContactTaskService.create(
+               requestBody.account, requestBody.origin,
+               requestBody.freshdeskDomain);
          return ResponseEntity.status(HttpStatus.CREATED).body(task);
       } catch (final DuplicateTaskException e) {
          return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -54,6 +55,14 @@ public class ContactsController {
       }
    }
 
-   record CreateContactRequestBody(String account, String origin) {
+   /**
+    * Represents the input parameters of the API.
+    *
+    * @param account         - the external account to get information from.
+    * @param origin          - the origin of the external account.
+    * @param freshdeskDomain - the Freshdesk subdomain to store the contact at.
+    */
+   record CreateContactRequestBody(String account, String origin,
+                                   String freshdeskDomain) {
    }
 }

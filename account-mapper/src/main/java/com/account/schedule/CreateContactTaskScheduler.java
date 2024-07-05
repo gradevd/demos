@@ -54,7 +54,7 @@ public class CreateContactTaskScheduler {
     */
    @Scheduled(scheduler = "taskScheduler", fixedRateString = "${create.contact.task.scheduler.rate.millis}")
    public void scheduleTasks() {
-      _logger.debug("Scanning for uncompleted tasks.");
+      _logger.debug("Scanning for pending tasks.");
       final List<CreateContactTaskEntity> pendingTasks = _contactTaskRepository.findByStatusInOrderByUpdatedAsc(
             Arrays.asList(Constants.CreateContactTaskStatus.TO_RETRY,
                   Constants.CreateContactTaskStatus.NOT_STARTED));

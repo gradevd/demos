@@ -17,15 +17,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
-public class ContactsControllerTest {
+public class TasksControllerTest {
 
    @InjectMocks
-   private ContactsController _contactsController;
+   private TasksController _tasksController;
 
    @Mock
    private CreateContactTaskService _taskService;
 
-   public ContactsControllerTest() {
+   public TasksControllerTest() {
       MockitoAnnotations.openMocks(this);
    }
 
@@ -33,14 +33,18 @@ public class ContactsControllerTest {
    public void create_withCorrectArguments_returnsTheCreatedTask() {
       final String account = "test-account";
       final String origin = "github";
+      final String freshdeskDomain = "my-freshworks";
       final CreateContactTaskEntity expectedTaskEntity = new CreateContactTaskEntity(
-            account, Constants.AccountOrigin.valueOf(origin.toUpperCase()));
+            account, Constants.AccountOrigin.valueOf(origin.toUpperCase()),
+            freshdeskDomain);
       expectedTaskEntity.id = "1";
 
-      when(_taskService.create(account, origin)).thenReturn(expectedTaskEntity);
+      when(_taskService.create(account, origin, freshdeskDomain)).thenReturn(
+            expectedTaskEntity);
 
-      final ResponseEntity<?> response = _contactsController.create(
-            new ContactsController.CreateContactRequestBody(account, origin));
+      final ResponseEntity<?> response = _tasksController.create(
+            new TasksController.CreateContactRequestBody(account, origin,
+                  freshdeskDomain));
 
       assertEquals(response.getStatusCode(), HttpStatus.CREATED);
       final CreateContactTaskEntity entity = (CreateContactTaskEntity) response.getBody();
@@ -48,19 +52,23 @@ public class ContactsControllerTest {
       assertEquals(entity.id, expectedTaskEntity.id);
       assertEquals(entity.account, expectedTaskEntity.account);
       assertEquals(entity.accountOrigin, expectedTaskEntity.accountOrigin);
+      assertEquals(entity.freshdeskDomain, expectedTaskEntity.freshdeskDomain);
    }
 
    @Test
    public void create_withCorrectArguments_whenDuplicateTaskExists_returnsConflictResponse() {
       final String account = "test-account";
       final String origin = "github";
+      final String freshdeskDomain = "my-freshworks";
 
       final DuplicateTaskException exceptionThrown = new DuplicateTaskException(
             "test-message");
-      when(_taskService.create(account, origin)).thenThrow(exceptionThrown);
+      when(_taskService.create(account, origin, freshdeskDomain)).thenThrow(
+            exceptionThrown);
 
-      final ResponseEntity<?> response = _contactsController.create(
-            new ContactsController.CreateContactRequestBody(account, origin));
+      final ResponseEntity<?> response = _tasksController.create(
+            new TasksController.CreateContactRequestBody(account, origin,
+                  freshdeskDomain));
 
       assertEquals(response.getStatusCode(), HttpStatus.CONFLICT);
       final ErrorResponse body = (ErrorResponse) response.getBody();
@@ -73,13 +81,16 @@ public class ContactsControllerTest {
    public void create_badRequestParameters_returns400Response() {
       final String account = "bad-account-request";
       final String origin = "bad-origin-request";
+      final String freshdeskDomain = "my-freshworks";
 
       final IllegalArgumentException exceptionThrown = new IllegalArgumentException(
             "test-message");
-      when(_taskService.create(account, origin)).thenThrow(exceptionThrown);
+      when(_taskService.create(account, origin, freshdeskDomain)).thenThrow(
+            exceptionThrown);
 
-      final ResponseEntity<?> response = _contactsController.create(
-            new ContactsController.CreateContactRequestBody(account, origin));
+      final ResponseEntity<?> response = _tasksController.create(
+            new TasksController.CreateContactRequestBody(account, origin,
+                  freshdeskDomain));
 
       assertEquals(response.getStatusCode(), HttpStatus.BAD_REQUEST);
       final ErrorResponse body = (ErrorResponse) response.getBody();
@@ -92,12 +103,15 @@ public class ContactsControllerTest {
    public void create_unknownException_returnsGeneralErrorMessage() {
       final String account = "bad-account-request";
       final String origin = "bad-origin-request";
+      final String freshdeskDomain = "my-freshworks";
 
       final RuntimeException exception = new RuntimeException();
-      when(_taskService.create(account, origin)).thenThrow(exception);
+      when(_taskService.create(account, origin, freshdeskDomain)).thenThrow(
+            exception);
 
-      final ResponseEntity<?> response = _contactsController.create(
-            new ContactsController.CreateContactRequestBody(account, origin));
+      final ResponseEntity<?> response = _tasksController.create(
+            new TasksController.CreateContactRequestBody(account, origin,
+                  freshdeskDomain));
 
       assertEquals(response.getStatusCode(), HttpStatus.BAD_REQUEST);
       final ErrorResponse body = (ErrorResponse) response.getBody();

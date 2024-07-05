@@ -43,4 +43,15 @@ All parameters of the formula are configurable via environment variables.
     are disabled from the docker build and must be executed via maven.
 * Locally on a hosting machine
   * Dependencies: Java 17, mongo
-  * `mvnw clean install && java -jar target/account-mapper-1.0.0.0.jar`
+  * Export the GitHub API key as ENV variable: `export GITHUB_API_KEY=`
+  * Export the Freshdesk API key as ENV variable: `export FRESHDESK_API_KEY=`
+  * Build the application: `mvnw clean install`
+  * Run the app in WEB mode: `java -jar target/account-mapper-1.0.0.0.jar`
+  * Run the app in CLI mode: `java -jar target/account-mapper-1.0.0.0.jar -Dspring.profiles.active=cli`
+
+Once the Application starts, start playing with the API:
+```
+curl -k -X POST -H 'Content-Type: application/json' \
+-d '{"account": "test", "origin": "GITHUB", "freshdeskDomain": "mytestcorp-help"}' \
+https://localhost:8443/tasks
+```

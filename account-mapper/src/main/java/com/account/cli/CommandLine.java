@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import com.account.constants.Constants;
+import com.account.service.CreateContactTaskService;
 import jakarta.annotation.PreDestroy;
 
 @Component
@@ -17,8 +18,10 @@ import jakarta.annotation.PreDestroy;
 public class CommandLine implements CommandLineRunner {
    private final Logger _logger = LoggerFactory.getLogger(getClass());
    private final Scanner _scanner;
+   private final CreateContactTaskService _createContactTaskService;
 
-   public CommandLine() {
+   public CommandLine(final CreateContactTaskService createContactTaskService) {
+      _createContactTaskService = createContactTaskService;
       _scanner = new Scanner(System.in);
    }
 
@@ -52,29 +55,22 @@ public class CommandLine implements CommandLineRunner {
    }
 
    private void createContact() {
-      System.out.printf("Account origin (%s)): %n", Arrays.asList(
-            Constants.AccountOrigin.values()));
+      System.out.printf("Account origin (%s)): %n",
+            Arrays.asList(Constants.AccountOrigin.values()));
       final String accountOriginString = _scanner.nextLine();
-      if (accountOriginString.isEmpty()) {
-         System.out.println("Empty account origin!");
-         return;
-      }
-      final Constants.AccountOrigin accountOrigin;
-      try {
-         accountOrigin = Constants.AccountOrigin.valueOf(
-               accountOriginString.toUpperCase());
-      } catch (final IllegalArgumentException e) {
-         System.out.println("Unsupported account origin!");
-         return;
-      }
       System.out.println("Account name: ");
       final String account = _scanner.nextLine();
-      if (account.isEmpty()) {
-         System.out.println("Missing 'account' argument.");
-         return;
+      System.out.println("Freshdesk domain: ");
+      final String domain = _scanner.nextLine();
+      try {
+         _logger.debug(
+               "Received a request to create a Freshdesk contact on domain {} for account {}@{}.",
+               domain, account, accountOriginString);
+         _createContactTaskService.create(account, accountOriginString, domain);
+      } catch (final IllegalArgumentException e) {
+         _logger.error(e.getMessage());
+      } catch (final RuntimeException e) {
+         _logger.error("An unexpected error occurred.", e);
       }
-      _logger.debug(
-            "Received a request to create a Freshdesk contact for account {}@{}.",
-            account, accountOrigin);
    }
 }
