@@ -1,0 +1,11 @@
+services:
+  application:
+    build: .
+    ports:
+      - "8443:8443"
+    depends_on:
+      - mongodb
+  mongodb:
+    image: "mongo:latest"
+    ports: 
+      - "27017:27017"
