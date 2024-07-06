@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.scheduling.annotation.Async;
@@ -109,6 +110,15 @@ public class CreateContactTaskService {
                   freshdeskDomain));
       _logger.debug("Successfully created task {}.", task);
       return task;
+   }
+
+   /**
+    * Lists all tasks from the DB.
+    *
+    * @return A list of all available tasks in the Database.
+    */
+   public List<CreateContactTaskEntity> list() {
+      return _createContactTaskRepository.findAll(Sort.by("updated"));
    }
 
    /**
@@ -271,6 +281,6 @@ public class CreateContactTaskService {
       }
    }
 
-   private static class RecoverableTaskException extends RuntimeException {
+   static class RecoverableTaskException extends RuntimeException {
    }
 }

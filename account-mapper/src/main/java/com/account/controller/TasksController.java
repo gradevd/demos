@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,6 +54,12 @@ public class TasksController {
                .body(new ErrorResponse("Bad request parameters.",
                      "Something went wrong. Please contact the support team for further assistance."));
       }
+   }
+
+   @GetMapping
+   public ResponseEntity<?> list() {
+      return ResponseEntity.status(HttpStatus.OK)
+            .body(_createContactTaskService.list());
    }
 
    /**

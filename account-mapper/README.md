@@ -47,11 +47,16 @@ All parameters of the formula are configurable via environment variables.
   * Export the Freshdesk API key as ENV variable: `export FRESHDESK_API_KEY=`
   * Build the application: `mvnw clean install`
   * Run the app in WEB mode: `java -jar target/account-mapper-1.0.0.0.jar`
-  * Run the app in CLI mode: `java -jar target/account-mapper-1.0.0.0.jar -Dspring.profiles.active=cli`
+  * Run the app in CLI mode: `java -jar target/account-mapper-1.0.0.0.jar --spring.profiles.active=cli --command.line.interface.enabled=true`
 
 Once the Application starts, start playing with the API:
+## Create a task
 ```
 curl -k -X POST -H 'Content-Type: application/json' \
 -d '{"account": "test", "origin": "GITHUB", "freshdeskDomain": "mytestcorp-help"}' \
 https://localhost:8443/tasks
+```
+## List all available tasks
+```
+curl -k -X GET -H 'Content-Type: application/json' https://localhost:8443/tasks
 ```

@@ -27,22 +27,19 @@ public class CreateContactTaskScheduler {
    private final CreateContactTaskRepository _contactTaskRepository;
    private final CreateContactTaskService _createContactTaskService;
 
-   private final int _maxAttempts;
-   private final long _initialTimeoutValueMillis;
-   private final long _timeoutStepMillis;
+   @Value("${create.contact.task.max.attempts}")
+   private int _maxAttempts;
+   @Value("${create.contact.task.timeout.initial.value.millis}")
+   private long _initialTimeoutValueMillis;
+   @Value("${create.contact.task.timeout.step.millis}")
+   private long _timeoutStepMillis;
 
    @Autowired
    public CreateContactTaskScheduler(
          final CreateContactTaskRepository contactTaskRepository,
-         final CreateContactTaskService createContactTaskService,
-         @Value("${create.contact.task.max.attempts}") final int maxAttempts,
-         @Value("${create.contact.task.timeout.initial.value.millis}") final long initialTimeoutValueMillis,
-         @Value("${create.contact.task.timeout.step.millis}") final long timeoutStepMillis) {
+         final CreateContactTaskService createContactTaskService) {
       _contactTaskRepository = contactTaskRepository;
       _createContactTaskService = createContactTaskService;
-      _maxAttempts = maxAttempts;
-      _initialTimeoutValueMillis = initialTimeoutValueMillis;
-      _timeoutStepMillis = timeoutStepMillis;
    }
 
    /**

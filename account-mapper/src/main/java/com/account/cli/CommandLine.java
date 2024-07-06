@@ -1,6 +1,7 @@
 package com.account.cli;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import com.account.constants.Constants;
+import com.account.entity.CreateContactTaskEntity;
 import com.account.service.CreateContactTaskService;
 import jakarta.annotation.PreDestroy;
 
@@ -32,12 +34,16 @@ public class CommandLine implements CommandLineRunner {
          System.out.println("""
             ===== Choose an option: ====
             1. Create a Freshdesk contact from an existing external account.
+            2. List all available Freshdesk contacts.
             0. Exit."""
          );
          //@formatter:on
          switch (_scanner.nextLine()) {
          case "1":
             createContact();
+            break;
+         case "2":
+            System.out.println("All available contacts: \n" + listContacts());
             break;
          case "0":
             System.out.println("Goodbye!");
@@ -72,5 +78,9 @@ public class CommandLine implements CommandLineRunner {
       } catch (final RuntimeException e) {
          _logger.error("An unexpected error occurred.", e);
       }
+   }
+
+   public List<CreateContactTaskEntity> listContacts() {
+      return _createContactTaskService.list();
    }
 }
