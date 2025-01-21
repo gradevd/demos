@@ -1,0 +1,50 @@
+{
+  "name": "pub-sub",
+  "version": "1.0.0",
+  "description": "A scalable consumer group processing messags from a Redis Pub/Sub channel.",
+  "main": "consumers.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/consumers.js",
+    "consumers-dev": "ts-node src/consumers.ts",
+    "monitor-dev": "ts-node src/monitor.ts",
+    "test": "jest"
+  },
+  "author": "Dimitar Gradev",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.10.7",
+    "@types/redis": "^4.0.10",
+    "@types/redis-mock": "^0.17.3",
+    "jest": "^29.7.0",
+    "redis-mock": "^0.56.3",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "redis": "^4.7.0",
+    "uuid": "^11.0.5"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ],
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "globals": {
+      "ts-jest": {
+        "isolatedModules": true
+      }
+    },
+    "testMatch": [
+      "**/tests/**/*.(test|spec).ts"
+    ]
+  }
+}
