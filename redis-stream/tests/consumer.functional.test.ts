@@ -1,6 +1,6 @@
-import redis from '../client/redis';
-import RedisStreamConsumer from '../consumer/consumer'; // Adjust import according to your project structure
-import { Message } from '../types/types'; // Adjust import according to your project structure
+import redis from '../src/client/redis';
+import RedisStreamConsumer from '../src/consumer/consumer'; // Adjust import according to your project structure
+import { Message } from '../src/types/types'; // Adjust import according to your project structure
 
 describe('RedisStreamConsumer', () => {
   const consumerGroupName = 'test-consumer-group';
