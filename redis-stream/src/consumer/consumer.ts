@@ -1,7 +1,19 @@
 import { RedisClientType } from 'redis';
 import { Message, ProcessedMessage, Consumer } from '../types/types';
 
+/**
+ * Represents a Redis stream consumer that processes messages from a source stream
+ * within a specific consumer group and writes processed messages to a target stream.
+ */
 class RedisStreamConsumer implements Consumer {
+  /**
+   * Constructs a RedisStreamConsumer instance.
+   * @param redisClient - The Redis client instance for interacting with Redis.
+   * @param id - A unique identifier for this consumer.
+   * @param consumerGroupName - The name of the consumer group this consumer belongs to.
+   * @param sourceStreamName - The Redis stream to consume messages from.
+   * @param targetStreamName - The Redis stream to push processed messages to.
+   */
   constructor(
     private readonly redisClient: RedisClientType,
     private readonly id: string,
@@ -10,6 +22,11 @@ class RedisStreamConsumer implements Consumer {
     private readonly targetStreamName: string
   ) {}
 
+  /**
+   * Consumes messages from the source Redis stream, processes each message, and
+   * acknowledges it in the stream. Processed messages are written to the target stream.
+   * If no messages are available, the method waits until messages arrive or the timeout expires.
+   */
   public async consume(): Promise<void> {
     const result: any = await this.redisClient.xReadGroup(
       this.consumerGroupName,
@@ -46,6 +63,11 @@ class RedisStreamConsumer implements Consumer {
     }
   }
 
+  /**
+   * Processes an individual message by appending additional metadata and
+   * writing it to the target stream.
+   * @param message - The message to process.
+   */
   private async processMessage(message: Message): Promise<void> {
     const processedMessage: ProcessedMessage = {
       id: message.id,
@@ -62,6 +84,10 @@ class RedisStreamConsumer implements Consumer {
     await this.sleep(10);
   }
 
+  /**
+   * Pauses execution for a specified amount of time.
+   * @param timeoutMillis - The number of milliseconds to sleep.
+   */
   private async sleep(timeoutMillis: number): Promise<void> {
     await new Promise((resolve) => {
       setTimeout(resolve, timeoutMillis);

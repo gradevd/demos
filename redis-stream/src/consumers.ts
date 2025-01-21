@@ -4,7 +4,7 @@ import RedisStreamConsumer from './consumer/consumer';
 import { Consumer } from './types/types';
 import { v4 as uuidv4 } from 'uuid';
 
-// Creates a consumer group if non-existing.
+// Creates a Redis consumer group for message processing if it doesn't already exist.
 const createConsumerGroup = async () => {
   try {
     await redis.xGroupCreate(
@@ -27,7 +27,7 @@ const createConsumerGroup = async () => {
   }
 };
 
-// Creates a pre-configured number of consumers for processing messages from a Redis stream
+// Initializes and starts a specified number of consumers for processing messages from a Redis stream.
 const initializeConsumers = async () => {
   // Cleanup prevous records
   redis.del(config.consumerIdsKey);
@@ -49,7 +49,8 @@ const initializeConsumers = async () => {
       config.publishedMessagesStreamName,
       config.processedMessagesStreamName
     );
-    // Run each consumer asynchronously in a loop
+
+    // Launch the consumer's `consume` method in an infinite loop asynchronously.
     const consumePromise = (async () => {
       while (true) {
         await consumer.consume();

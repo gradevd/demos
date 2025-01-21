@@ -1,13 +1,27 @@
 import { RedisClientType } from 'redis';
 import { Monitor, ProcessedMessage } from '../types/types';
 
+/**
+ * A monitor for Redis streams that periodically calculates and logs message processing rates.
+ * It analyzes messages from a processed messages stream and computes the overall and per-consumer processing ratios.
+ */
 class RedisStreamMonitor implements Monitor {
+  /**
+   * Constructs a RedisStreamMonitor instance.
+   * @param redis - The Redis client instance for interacting with the Redis stream.
+   * @param streamKey - The key of the Redis stream to monitor.
+   * @param intervalMillis - The interval (in milliseconds) at which to log monitoring statistics.
+   */
   constructor(
     private readonly redis: RedisClientType,
     private readonly streamKey: string,
     private readonly intervalMillis: number
   ) {}
 
+  /**
+   * Starts the monitoring process. Periodically retrieves messages from the stream,
+   * analyzes their timestamps and associated metadata, and logs processing rates.
+   */
   public async monitor(): Promise<void> {
     if (!this.redis.isOpen) {
       await this.redis.connect();
